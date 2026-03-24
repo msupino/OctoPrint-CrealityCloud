@@ -55,16 +55,7 @@ class filecontrol(object):
                 self._fileinfo = ""
                 num_fileinfo = 0
             # 生成文件信息字符串
-            self._fileinfo = (
-                str(self._fileinfo)
-                + "/local:"
-                + str(file["name"])
-                + ":"
-                + str(file["size"])
-                + ":"
-                + str(file["date"])
-                + ";"
-            )
+            self._fileinfo = f"{self._fileinfo}/local:{file['name']}:{file['size']}:{file['date']};"
             num_fileinfo = num_fileinfo + 1
         # 将最后一页self._filedict储存到self._filelist
         self._filedict = {"tf": 0, "fileinfo": self._fileinfo, "pageindex": page}

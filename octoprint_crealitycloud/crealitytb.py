@@ -1,7 +1,6 @@
 import logging
-from tb_device_mqtt import TBDeviceMqttClient, TBPublishInfo
+from tb_device_mqtt import TBDeviceMqttClient
 import time
-import psutil
 import json
 
 class ThingsBoard(object):
@@ -22,6 +21,7 @@ class ThingsBoard(object):
                         ,"mcu_is_print": 0,"boxVersion":" ","InitString":" ","APILicense":" ","DIDString":" ","retGcodeFileInfo":" ","autohome": 0
                         ,"fan": 0,"stop": 0,"print":" ","nozzleTemp2": 0,"bedTemp2": 0,"pause": 0,"opGcodeFile":" ","gcodeCmd":" ","setPosition":" ","tag":"1.0.8", "led_state": 0}
         self.__on_server_side_rpc_request = None
+        self.__on_shared_attributes_change = None
 
     def client_initialization(self, region):
         if region != 0:
@@ -29,6 +29,7 @@ class ThingsBoard(object):
         self.__client_create()
         self.__respond_rpc()
         self.__client_connect()
+        self.__subscribe_attributes()
         self.__init_shadow()
 
     def client_provison(self):
@@ -63,7 +64,11 @@ class ThingsBoard(object):
     def __respond_rpc(self):
         if self.__on_server_side_rpc_request is not None:
             self.client.set_server_side_rpc_request_handler(self.__on_server_side_rpc_request)
-    
+
+    def __subscribe_attributes(self):
+        if self.__on_shared_attributes_change is not None:
+            self.client.subscribe_to_all_attributes(self.__on_shared_attributes_change)
+
     def __init_shadow(self):
         self.send_telemetry(self.telemetry)
         self.send_attributes(self.attributes)
@@ -81,4 +86,11 @@ class ThingsBoard(object):
     @on_server_side_rpc_request.setter
     def on_server_side_rpc_request(self, value):
         self.__on_server_side_rpc_request = value
-        pass
+
+    @property
+    def on_shared_attributes_change(self):
+        return self.__on_shared_attributes_change
+
+    @on_shared_attributes_change.setter
+    def on_shared_attributes_change(self, value):
+        self.__on_shared_attributes_change = value

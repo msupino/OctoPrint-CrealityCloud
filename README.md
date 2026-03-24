@@ -21,7 +21,7 @@ You need a Creality Cloud account to connect octoprint and Creality Cloud App.Mo
 Creality Cloud Plugin:
 
 
-- [https://github.com/crealitycloud/OctoPrint-Crealitycloud/archive/master.zip](https://github.com/crealitycloud/OctoPrint-Crealitycloud/archive/master.zip)
+- [https://github.com/msupino/OctoPrint-CrealityCloud/archive/master.zip](https://github.com/msupino/OctoPrint-CrealityCloud/archive/master.zip)
 
 
 
@@ -78,6 +78,58 @@ Start slicing and printing...
 2. Choose a model file to slice and start printing.
 
 ![slicing&printing2.png](https://cdn.nlark.com/yuque/0/2022/png/22795356/1642471649704-68e7cb4a-f39a-4090-a4f8-44c801f4c8d1.png#clientId=u473873a0-7629-4&crop=0&crop=0&crop=1&crop=1&from=drop&id=ude3ac464&margin=%5Bobject%20Object%5D&name=slicing%26printing2.png&originHeight=790&originWidth=766&originalType=binary&ratio=1&rotation=0&showTitle=false&size=296681&status=done&style=none&taskId=u2181775c-22dd-41d4-bacc-6144cf8d1cf&title=)
+
+## **Video Streaming & Recording (Fork Changes):**
+
+This fork adds WebRTC-based live video streaming and print recording to the Creality Cloud plugin. The camera pipeline works as follows:
+
+1. On startup the plugin detects whether a webcam is available (via OctoPrint snapshot/stream settings or by checking for a video device node).
+2. If a webcam is found, an RTSP relay is started automatically using a bundled [MediaMTX](https://github.com/bluenviron/mediamtx) v1.17.0 binary (armv7l, aarch64, and x86_64).
+3. A shell script (`rtsp_server.sh`) launches MediaMTX and uses `ffmpeg` to transcode the MJPEG stream from the camera into H.264 over RTSP at `rtsp://127.0.0.1:8554/ch0_0`.
+4. When the Creality Cloud app requests a live view, a WebRTC peer connection is established via a WebSocket signaling channel. The RTSP stream is consumed by `aiortc` and relayed to the app.
+5. Print recordings are captured by `ffmpeg` into per-minute MP4 segments, concatenated when a print finishes, and served back through the plugin's HTTP API.
+
+### Prerequisites
+
+The following system packages must be available on the Raspberry Pi (or host):
+
+- **ffmpeg** -- used both by the RTSP relay and the print recorder.
+- A working MJPEG camera stream at `http://127.0.0.1:8080/?action=stream` (the default for `mjpg-streamer` / OctoPi).
+
+Python dependencies added by this fork (installed automatically via `setup.py`):
+
+- `ffmpy==0.3.1`
+- `websocket_client`
+- `av>=10.0.0`
+- `aiortc>=1.5.0`
+
+### Camera Device Override
+
+By default the plugin checks `/dev/video0` to detect whether a camera is connected. To use a different device, set the `OCTOPI_CAMERA_DEV` environment variable before starting OctoPrint:
+
+```bash
+export OCTOPI_CAMERA_DEV=/dev/video1
+```
+
+This only affects device-node detection. The actual video stream is still read from the MJPEG URL configured in OctoPrint / mjpg-streamer.
+
+### New HTTP Endpoints
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/plugin/crealitycloud/snapshot` | GET | Proxies a JPEG snapshot from the OctoPrint webcam URL |
+| `/plugin/crealitycloud/recorderAction?action=START\|STOP` | GET | Start or stop print recording |
+| `/plugin/crealitycloud/getRecorderStatus` | GET | Returns whether the recorder is running |
+| `/plugin/crealitycloud/getVideoDate` | GET | Lists dates that have recordings |
+| `/plugin/crealitycloud/getVideoHour?date=YYYY-MM-DD` | GET | Lists recording sessions for a date |
+| `/plugin/crealitycloud/getVideoList?date=YYYY-MM-DD&hour=ID` | GET | Lists video files in a session |
+| `/plugin/crealitycloud/<date>/<hour>/<filename>` | GET | Streams an MP4 recording (supports Range requests) |
+
+### Logging
+
+Verbose protocol-level logging (WebRTC signaling, MQTT callbacks, ICE candidates, etc.) is set to `DEBUG` level. To see these messages, enable debug logging for `octoprint.plugins.crealitycloud` in OctoPrint's logging settings.
+
+---
 
 Hope this Creality Cloud plugin on OctoPrint will give you a different experience on your 3D printing. Thank you for supporting and happy printing!
 

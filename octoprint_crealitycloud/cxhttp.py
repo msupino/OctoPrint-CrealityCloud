@@ -22,17 +22,17 @@ class CrealityAPI(object):
 
         time = time.localtime(time.time())
         r = random.random() % (99999 - 10000) + 10000
-        return "Raspberry" + str(time.tm_sec) + str(10) + str(r)  # time.tvm_usec
+        return f"Raspberry{time.tm_sec}{10}{r}"  # time.tvm_usec
 
     def getconfig(self, token):
-        home_url = self.__homeurl + "/api/cxy/v2/device/user/importDevice"
-        oversea_url = self.__overseaurl + "/api/cxy/v2/device/user/importDevice"
+        home_url = f"{self.__homeurl}/api/cxy/v2/device/user/importDevice"
+        oversea_url = f"{self.__overseaurl}/api/cxy/v2/device/user/importDevice"
         headers = {
             "Content-Type": "application/json",
             "__CXY_JWTOKEN_": token
         }
         mac=uuid.UUID(int = uuid.getnode()).hex[-12:].upper()
-        data = '{"mac": "' + str(mac) + '" , "iotType": 2}'
+        data = f'{{"mac": "{mac}" , "iotType": 2}}'
         response = requests.post(home_url, data=data, headers=headers, timeout=5).text
         if "result" not in response:
              response = requests.post(oversea_url, data=data, headers=headers, timeout=5).text
@@ -40,7 +40,7 @@ class CrealityAPI(object):
         return res
 
     def getAddrress1(self):
-        url = self.__homeurl + "/api/cxy/v2/common/getAddrress"
+        url = f"{self.__homeurl}/api/cxy/v2/common/getAddrress"
         response = requests.post(url, data="{}", headers=self.__headers, timeout=5).text
         res = json.loads(response)
         if res["code"] == 0:
@@ -49,7 +49,7 @@ class CrealityAPI(object):
         return ("", "US")
 
     def getAddrress2(self):
-        url = self.__overseaurl + "/api/cxy/v2/common/getAddrress"
+        url = f"{self.__overseaurl}/api/cxy/v2/common/getAddrress"
         response = requests.post(url, data="{}", headers=self.__headers, timeout=5).text
         res = json.loads(response)
         if res["code"] == 0:
@@ -58,9 +58,9 @@ class CrealityAPI(object):
         return ("", "US")
 
     def exchangeTb(self, deviceName, productKey, deviceSecret, region):
-        homeurl = self.__homeurl + "/api/cxy/v2/device/user/exchangeTb"
-        overseaurl = self.__overseaurl + "/api/cxy/v2/device/user/exchangeTb"
-        data = '{"deviceName": "' + str(deviceName) + '" , "productKey": "' + str(productKey) + '" , "deviceSecret": "' + str(deviceSecret) + '"}'
+        homeurl = f"{self.__homeurl}/api/cxy/v2/device/user/exchangeTb"
+        overseaurl = f"{self.__overseaurl}/api/cxy/v2/device/user/exchangeTb"
+        data = f'{{"deviceName": "{deviceName}" , "productKey": "{productKey}" , "deviceSecret": "{deviceSecret}"}}'
         headers = {
             "Content-Type": "application/json",
         }
