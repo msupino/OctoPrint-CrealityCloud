@@ -127,7 +127,7 @@ class Recorder(object):
                                             f"drawtext=fontfile='C:/Windows/fonts/Arial.ttf': text='%{{pts\\:localtime\\:{time.time()}}}': x=10: y=10: fontcolor=white: box=1: boxcolor=0x00000000@1",
                                             "-f", "segment", "-strftime", "1", "-segment_time", "60",
                                             "-reset_timestamps", "1",
-                                            "-vcodec", "h264_omx"]}
+                                            "-vcodec", "libx264", "-preset", "ultrafast"]}
             )
         else:
             self.ffmpeg = FFmpeg(
@@ -137,7 +137,7 @@ class Recorder(object):
                                             #f"drawtext=fontfile=Arial.ttf: text='%{{pts\:localtime\:{time.time()}}}': x=10: y=10: fontcolor=white: box=1: boxcolor=0x00000000@1",
                                             "-f", "segment", "-strftime", "1", "-segment_time", "60",
                                             "-reset_timestamps", "1",
-                                            "-vcodec", "h264_omx"]}
+                                            "-vcodec", "libx264", "-preset", "ultrafast"]}
             )
         try:
             self.ffmpeg.run()
@@ -306,7 +306,7 @@ class Recorder(object):
             self.ffmpeg_play = FFmpeg(
                     #inputs={'rtsp://172.23.215.16:8086': None},
                     inputs={self.mjpg_stream_url: ['-f', 'mjpeg', '-r', '10']},
-                    outputs={outpath: ['-q', '0', '-loglevel', 'quiet', '-tune', 'zerolatency', '-vcodec', 'h264_omx', '-preset', 'veryfast', '-f', 'rtsp']}
+                    outputs={outpath: ['-q', '0', '-loglevel', 'quiet', '-tune', 'zerolatency', '-vcodec', 'libx264', '-preset', 'ultrafast', '-f', 'rtsp']}
                 )
         else:
             listpath = self.create_play_list(path)
@@ -315,7 +315,7 @@ class Recorder(object):
             #ffmpeg  -f concat -i filelist.txt -s 800*480 -b:v 8000K  -tune zerolatency -vcodec h264_omx -preset veryfast -f rtsp rtsp://127.0.0.1:8554/ch0_0
             self.ffmpeg_play = FFmpeg(
                     inputs={listpath: ['-f', 'concat']},
-                    outputs={outpath: ['-s', '800*480', '-tune', 'zerolatency', '-vcodec', 'h264_omx', '-preset', 'veryfast', '-f', 'rtsp']}
+                    outputs={outpath: ['-s', '800*480', '-tune', 'zerolatency', '-vcodec', 'libx264', '-preset', 'ultrafast', '-f', 'rtsp']}
                 )
         try:
             self.ffmpeg_play.run()
