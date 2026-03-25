@@ -62,9 +62,13 @@ class WebSocketClient:
     def close(self):
         with self._mutex:
             try:
-                self.ws.keep_running = False
-                self.ws.close()
-            except (AttributeError, Exception):
+                ws = self.ws
+                if ws:
+                    ws.on_close = lambda *a: None
+                    ws.on_error = lambda *a: None
+                    ws.keep_running = False
+                    ws.close()
+            except Exception:
                 pass
 			
     def _reconnect(self, ws, reason):
