@@ -33,7 +33,7 @@ plugin_url = "https://github.com/crealitycloud/OctoPrint-Crealitycloud"
 plugin_license = "AGPLv3"
 
 # Any additional requirements besides OctoPrint should be listed here
-plugin_requires = ["OctoPrint>1.3.8", "paho_mqtt==1.6.1", "pyjwt==2.8.0", "tb-mqtt-client==1.2", "ffmpy==0.3.1", "websocket_client", "av>=10.0.0", "aiortc>=1.5.0"]
+plugin_requires = ["OctoPrint>1.3.8", "paho_mqtt==1.6.1", "pyjwt==2.8.0", "tb-mqtt-client==1.2", "websocket_client", "av>=10.0.0", "aiortc>=1.5.0"]
 
 ### --------------------------------------------------------------------------------------------------------------------
 ### More advanced options that you usually shouldn't have to touch follow after this point

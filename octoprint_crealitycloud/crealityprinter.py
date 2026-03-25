@@ -45,7 +45,7 @@ class ErrorCode(Enum):
 
 
 class CrealityPrinter(object):
-    def __init__(self, plugin, lk, thingsboard, tbid, region, recorder):
+    def __init__(self, plugin, lk, thingsboard, tbid, region):
 
         self._logger = logging.getLogger("octoprint.plugins.crealityprinter")
         self._config = CrealityConfig(plugin)
@@ -103,7 +103,6 @@ class CrealityPrinter(object):
         self.WebSocketClient = None
         self.WebrtcManager = None
         self.region = region
-        self.recorder = recorder
         self._telemetry_msg = {}
         self._attributes_msg = {}
         self._model = ''
@@ -847,7 +846,7 @@ class CrealityPrinter(object):
                 asyncio.set_event_loop(loop)
                 self.WebrtcManager = WebrtcManager(
                     self._thingsboard_Id, self._thingsboard_Id, webrtcOptions,
-                    self.close_queue, self._jwttoken, self.region, self.recorder,
+                    self.close_queue, self._jwttoken, self.region,
                     verbose=True,
                 )
                 self.WebSocketClient = WebSocketClient(

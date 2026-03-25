@@ -12,7 +12,7 @@ sys.path.append('../../src/aiortc')
 
 class WebrtcManager():
 
-    def __init__(self,devuceName, our_peer_id, options, close_queue, token, region, recorder, verbose=False):
+    def __init__(self,devuceName, our_peer_id, options, close_queue, token, region, verbose=False):
         self._logger = logging.getLogger("octoprint.plugins.crealitycloud")
         self.our_peer_id = our_peer_id
         self.peers = {}
@@ -26,8 +26,6 @@ class WebrtcManager():
         self.websockets_client = None
         self.close_queue = close_queue
         self.region = region
-        self.recorder = recorder
-        self.filepath = ""
 
     async def signaling_message_handler(self, ws, message):
         dict = json.loads(message)
@@ -50,16 +48,7 @@ class WebrtcManager():
                     self.urls = iceServer[0]["urls"]
                     self.username = iceServer[0]["username"]
                     self.credential = iceServer[0]["credential"]
-                if 'media' in sdpMessage:
-                    media = sdpMessage["media"]
-                    self.filepath = self.recorder.find_video(media)
-                    if os.access(self.filepath,os.F_OK):
-                        self._logger.debug(f"filepath:{self.filepath}")
-                    else:
-                        self._logger.warning("filepath not exist")
-                        return
-                else:
-                    media = ""
+                media = sdpMessage.get("media", "")
                 if peerId in self.peers:
                     await self.remove_peer(peerId)
                 await self.add_peer(peerId, "admin", True, media)
@@ -207,11 +196,7 @@ class WebrtcManager():
         )
         else:
             if self.options.get('cameraDevice'):
-                if len(peer['media']) == 0:
-                #webcam = MediaPlayer(self.options.get('cameraDevice'), format="v4l2", options=options)
-                    webcam = MediaPlayer('rtsp://127.0.0.1:8554/ch0_0', format="rtsp", options=options)
-                else:
-                    webcam = MediaPlayer(self.filepath)
+                webcam = MediaPlayer('rtsp://127.0.0.1:8554/ch0_0', format="rtsp", options=options)
         peer['mediaplayer'] = webcam
         peer['localVideoStream'] = webcam.video
         

@@ -29,7 +29,7 @@ class ProgressMonitor(PrinterCallback):
         self.printLeftTime = data["progress"]["printTimeLeft"]
 
 class CrealityCloud(object):
-    def __init__(self, plugin, recorderObject):
+    def __init__(self, plugin):
         # cn-shanghai，us-west-1，ap-southeast-1
         self._logger = logging.getLogger("octoprint.plugins.crealitycloud")
         self.plugin = plugin
@@ -49,7 +49,6 @@ class CrealityCloud(object):
         self._printer_disconnect = False
         self._M27_timer_state = False
         self.thingsboard_Id = None
-        self.recorder = recorderObject
 
         self._upload_timer = RepeatedTimer(2,self._upload_timing,run_first=True)
         self._send_M27_timer = RepeatedTimer(10,self._send_M27_timing,run_first=False)
@@ -182,7 +181,7 @@ class CrealityCloud(object):
             self.thingsboard.on_server_side_rpc_request = self.on_server_side_rpc_request
             self.thingsboard.on_shared_attributes_change = self.on_thing_prop_changed
             self.thingsboard.client_initialization(region)
-            self._aliprinter = CrealityPrinter(self.plugin, self.lk, self.thingsboard, self.thingsboard_Id, region, self.recorder)
+            self._aliprinter = CrealityPrinter(self.plugin, self.lk, self.thingsboard, self.thingsboard_Id, region)
             self._progress = ProgressMonitor()
             self._aliprinter.printer.register_callback(self._progress)
 
@@ -440,7 +439,6 @@ class CrealityCloud(object):
                 except Exception as e:
                     self._logger.error(e)
             self._aliprinter.connect = 0
-            self.recorder.stop()
 
         elif event == Events.PRINT_STARTED:
 
@@ -493,11 +491,6 @@ class CrealityCloud(object):
                 except Exception as e:
                     self._logger.error(f"remove temp file fail! ERROR:{e}")
 
-            if self._aliprinter.printId != "" and self._aliprinter.video == 1:
-                self.recorder.set_printid(self._aliprinter.printId)
-                self.recorder.run()
-                self._logger.info(f'recorder started for printid: {self._aliprinter.printId}')
-
         elif event == Events.PRINT_PAUSED:
             self._aliprinter.pause = 1
 
@@ -516,14 +509,12 @@ class CrealityCloud(object):
             if self._aliprinter.printId.find("local_") >= 0:
                 self._aliprinter.mcu_is_print = 0
                 self._aliprinter.printId = ""
-            self.recorder.stop()
 
         elif event == Events.PRINT_DONE:
             if self._aliprinter.is_cloud_print:
                 self._aliprinter.is_cloud_print = False
 
             self._aliprinter.state = 2
-            self.recorder.stop()
             if self._aliprinter.printId.find("local_") >= 0:
                 self._aliprinter.mcu_is_print = 0
                 self._aliprinter.printId = ""
