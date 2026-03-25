@@ -18,6 +18,7 @@ class WebSocketClient:
         self._url = url 
         self._queue = queue
         self.reconnect_count = 0
+        self._reconnecting = False
         self.subprotocols = subprotocols
         self.token = token
 
@@ -53,32 +54,43 @@ class WebSocketClient:
 
     def connected(self):
         with self._mutex:
-            return self.ws.sock and self.ws.sock.connected
+            try:
+                return self.ws and self.ws.sock and self.ws.sock.connected
+            except AttributeError:
+                return False
 
     def close(self):
         with self._mutex:
-            self.ws.keep_running = False
-            self.ws.close()
+            try:
+                self.ws.keep_running = False
+                self.ws.close()
+            except (AttributeError, Exception):
+                pass
 			
     def _reconnect(self, ws, reason):
-        self.reconnect_count += 1
-        delay = min(5 * self.reconnect_count, 60)
-        self._logger.info(
-            "WebSocket %s, reconnecting in %ds (attempt %d)...",
-            reason, delay, self.reconnect_count,
-        )
-        self.close()
-        time.sleep(delay)
-        self.connection_tmp(ws)
+        with self._mutex:
+            if self._reconnecting:
+                return
+            self._reconnecting = True
+        try:
+            self.reconnect_count += 1
+            delay = min(5 * self.reconnect_count, 60)
+            self._logger.info(
+                "WebSocket %s, reconnecting in %ds (attempt %d)...",
+                reason, delay, self.reconnect_count,
+            )
+            self.close()
+            time.sleep(delay)
+            self.connection_tmp(ws)
+        finally:
+            with self._mutex:
+                self._reconnecting = False
 
     def on_error(self, ws, error):
-        if isinstance(error, (ConnectionRefusedError,
-                              websocket._exceptions.WebSocketConnectionClosedException,
-                              BrokenPipeError, OSError)):
-            self._reconnect(ws, f"error: {error}")
-        else:
-            self._logger.error(f"websocket error: {error}")
-            self._reconnect(ws, f"error: {error}")
+        if self._reconnecting:
+            return
+        self._logger.error(f"websocket error: {error}")
+        self._reconnect(ws, f"error: {error}")
 
     def on_message(self, ws, msg):
         self.reconnect_count = 0
@@ -94,26 +106,27 @@ class WebSocketClient:
 
     def on_close(self, ws, status, msg):
         self._logger.info(f"WebSocket closed: status={status} msg={msg}")
-        self._reconnect(ws, f"closed (status={status})")
+        if not self._reconnecting:
+            self._reconnect(ws, f"closed (status={status})")
 
     def on_open(self, ws):
-		# if on_ws_open:
-		#     on_ws_open(ws)
-        data = {                    
-                        "action": "join",
-                        "to": "server",
-                        "clientCtx":{ 
-                                        "device_brand":"raspberry",
-                                        "os_version":"linux",
-                                        "platform_type":1,
-                                        "app_version":"v1.1.2"
-                                    },
-                        "token":{
-                                    "jwtToken":self.token
-                        }
-
-				}
-        ws.send(json.dumps(data))
+        data = {
+            "action": "join",
+            "to": "server",
+            "clientCtx": {
+                "device_brand": "raspberry",
+                "os_version": "linux",
+                "platform_type": 1,
+                "app_version": "v1.1.2"
+            },
+            "token": {
+                "jwtToken": self.token
+            }
+        }
+        try:
+            ws.send(json.dumps(data))
+        except Exception:
+            self._logger.debug("WebSocket send failed in on_open, connection already dead.")
 
     def connection_tmp(self, ws):
         #websocket.enableTrace(True)

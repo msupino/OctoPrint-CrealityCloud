@@ -106,7 +106,7 @@ def player_worker(
     while not quit_event.is_set():
         try:
             frame = next(container.decode(*streams))
-        except (av.AVError, StopIteration) as exc:
+        except (av.FFmpegError, StopIteration) as exc:
             if isinstance(exc, av.FFmpegError) and exc.errno == errno.EAGAIN:
                 time.sleep(0.01)
                 continue

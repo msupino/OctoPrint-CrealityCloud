@@ -194,8 +194,8 @@ class WebrtcManager():
             'rtbufsize': '2M',
             'fflags': 'nobuffer',
             'flags': 'low_delay',
-            'analyzeduration': '500000',
-            'probesize': '500000',
+            'analyzeduration': '0',
+            'probesize': '1024',
         }
         if platform.system() == "Darwin":
             webcam = MediaPlayer(
