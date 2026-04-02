@@ -181,7 +181,7 @@ class CrealitycloudPlugin(
                     else:
                         self._crealitycloud._aliprinter.state = 0
                         self._crealitycloud._aliprinter.printProgress = 0
-                    self._crealitycloud._aliprinter.mcu_is_print == 0
+                    self._crealitycloud._aliprinter.mcu_is_print = 0
                 self.printing_befor_connect = False
             return line
         return line

@@ -132,8 +132,6 @@ class CrealityCloud(object):
                                                 self._aliprinter._printTime = int(line.replace(";TIME:", ""))
                                             except Exception as e:
                                                 self._logger.error(e)
-                                        else:
-                                            self._aliprinter._printTime = 0
                         except:
                             self._aliprinter.printLeftTime = 0
             else:
