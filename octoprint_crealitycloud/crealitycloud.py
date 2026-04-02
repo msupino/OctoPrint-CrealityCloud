@@ -473,9 +473,9 @@ class CrealityCloud(object):
                             elif "Bed Temperature" in line:
                                 bedTemp2 = int(line.replace(";Bed Temperature:", ""))
                             elif "M140" in line:
-                                nozzleTemp2 = int(line.replace("M140 S", ""))
+                                bedTemp2 = int(line.replace("M140 S", ""))
                             elif "M104" in line:
-                                bedTemp2 = int(line.replace("M104 S", ""))                                
+                                nozzleTemp2 = int(line.replace("M104 S", ""))                                
             except:
                 self._logger.warning("file not exist")    
             if nozzleTemp2 is not None:
