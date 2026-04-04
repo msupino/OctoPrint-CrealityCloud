@@ -102,11 +102,17 @@ class CrealityCloud(object):
             #save tool0 temperatures data
             if temp_data.get('tool0') is not None:
                 self._aliprinter.nozzleTemp = int(temp_data['tool0'].get('actual'))
+                target = temp_data['tool0'].get('target')
+                if target is not None:
+                    self._aliprinter.nozzleTemp2 = int(target)
             else:
                 self._logger.debug('tool temperature is none')
             #save bed temperatures data
             if temp_data.get('bed') is not None:
                 self._aliprinter.bedTemp = int(temp_data['bed'].get('actual'))
+                bed_target = temp_data['bed'].get('target')
+                if bed_target is not None:
+                    self._aliprinter.bedTemp2 = int(bed_target)
             else:
                 self._logger.debug('bed temperature is none')
 
